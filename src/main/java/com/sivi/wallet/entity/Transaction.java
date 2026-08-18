@@ -4,6 +4,8 @@ import com.sivi.wallet.enums.SourceType;
 import com.sivi.wallet.enums.TransactionType;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -26,7 +28,7 @@ public class Transaction extends BaseEntity {
     private Long walletId;
 
     @Column(nullable = false)
-    private Integer categoryId;
+    private Long categoryId;
 
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal amount;
