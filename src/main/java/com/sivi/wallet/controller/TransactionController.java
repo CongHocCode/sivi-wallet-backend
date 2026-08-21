@@ -6,10 +6,9 @@ import com.sivi.wallet.dto.transaction.TransactionResponse;
 import com.sivi.wallet.service.TransactionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/v1/transactions")
@@ -22,4 +21,17 @@ public class TransactionController {
         TransactionResponse response = transactionService.createTransaction(request);
         return ApiResponse.success("Tạo giao dịch thành công", response);
     }
+
+    @GetMapping
+    public ApiResponse<List<TransactionResponse>> getTransactions(
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Long walletId) {
+
+        return ApiResponse.success(
+                "Lấy lịch sử giao dịch thành công",
+                transactionService.getTransactions(month, year, walletId)
+        );
+    }
+
 }

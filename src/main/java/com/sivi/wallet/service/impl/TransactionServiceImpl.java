@@ -19,6 +19,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class TransactionServiceImpl implements TransactionService {
@@ -59,4 +65,31 @@ public class TransactionServiceImpl implements TransactionService {
         Transaction savedTx = txRepository.save(tx);
         return TransactionMapper.toResponse(savedTx, wallet, category);
     }
+
+    @Override
+    public List<TransactionResponse> getTransactions(Integer month, Integer year, Long walletId) {
+        Long currentUserId = SecurityUtils.getCurrentUserId(userRepository);
+        List<Transaction> txs = txRepository.filterTransactions(currentUserId, walletId, month, year);
+
+        Map<Long, Wallet> walletMap = walletRepository.findByUserIdAndIsActiveTrue(currentUserId)
+                .stream().collect(Collectors.toMap(Wallet::getId, w -> w));
+
+        // Find category id appeared in tx list
+        Set<Long> categoryIds = txs.stream()
+                .map(Transaction::getCategoryId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        // Query category needed
+        Map<Long, Category> categoryMap = categoryRepository.findAllById(categoryIds).stream()
+                .collect(Collectors.toMap(Category::getId, c -> c));
+
+        return txs.stream().map((tx) ->
+                TransactionMapper.toResponse(
+                        tx,
+                        walletMap.get(tx.getWalletId()),
+                        categoryMap.get(tx.getCategoryId())
+                )).toList();
+    }
+
 }
