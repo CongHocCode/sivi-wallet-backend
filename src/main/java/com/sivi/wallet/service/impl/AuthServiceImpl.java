@@ -42,7 +42,7 @@ public class AuthServiceImpl implements AuthService {
         User savedUser = userRepository.save(user);
 
         String token = tokenProvider.generateToken(savedUser);
-        return new AuthResponse(token, "Bearer", savedUser.getUsername());
+        return new AuthResponse(savedUser.getId(), token, "Bearer", savedUser.getUsername());
     }
 
     @Override
@@ -55,6 +55,6 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new AppException(ErrorCode.INVALID_CREDENTIALS));
 
         String token = tokenProvider.generateToken(user);
-        return new AuthResponse(token, "Bearer", user.getUsername());
+        return new AuthResponse(user.getId(), token, "Bearer", user.getUsername());
     }
 }

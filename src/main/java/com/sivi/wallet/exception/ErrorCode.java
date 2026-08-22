@@ -12,6 +12,9 @@ public enum ErrorCode {
     UNAUTHORIZED("4005", "Bạn không có quyền thực hiện thao tác này hoặc phiên đăng nhập đã hết hạn"),
     BAD_REQUEST("4006", "Yêu cầu không hợp lệ"),
     CATEGORY_NOT_FOUND("4007", "Không tìm thấy danh mục yêu cầu" ),
+    ALREADY_JOINED("4008", "Đã tham gia nhóm trước đó"),
+    USER_NOT_FOUND("4009", "Không tìm thấy người dùng yêu cầu"),
+    GROUP_NOT_FOUND("4010", "Không tìm thấy nhóm yêu cầu"),
     INTERNAL_SERVER_ERROR("5000", "Lỗi hệ thống nội bộ, vui lòng thử lại sau");
 
 

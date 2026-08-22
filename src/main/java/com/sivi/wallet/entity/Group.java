@@ -5,7 +5,7 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Entity
-@Table(name = "groups")
+@Table(name = "app_groups")
 @Getter
 @Setter
 @NoArgsConstructor
