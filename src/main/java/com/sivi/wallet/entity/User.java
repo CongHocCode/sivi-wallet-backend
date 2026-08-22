@@ -12,18 +12,18 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @SuperBuilder
 public class User extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true) // nullable = false (Guest username = null)
     private String username;
 
     @Column(unique = true)
     private String email;
 
-    @Column(nullable = false)
-    private String password;
+    private String password; // Guest does not have password
 
     @Column(nullable = false)
     private String fullName;
