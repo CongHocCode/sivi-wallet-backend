@@ -1,5 +1,6 @@
 package com.sivi.wallet.dto.bill;
 
+import com.sivi.wallet.enums.DebtType;
 import lombok.*;
 import java.math.BigDecimal;
 
@@ -15,6 +16,6 @@ public class DebtSummaryResponse {
     private String otherUserName;
     private Boolean otherUserIsGuest;
     private BigDecimal amount;
-    private String type; // "YOU_OWE" (I owe them) or "OWES_YOU" (They owe me)
+    private DebtType type; // "YOU_OWE" (I owe them) or "OWES_YOU" (They owe me)
     private Boolean isPaid;
 }

@@ -2,6 +2,7 @@ package com.sivi.wallet.controller;
 
 import com.sivi.wallet.dto.bill.BillResponse;
 import com.sivi.wallet.dto.bill.CreateBillRequest;
+import com.sivi.wallet.dto.bill.DebtLedgerResponse;
 import com.sivi.wallet.dto.bill.DebtSummaryResponse;
 import com.sivi.wallet.dto.common.ApiResponse;
 import com.sivi.wallet.service.BillService;
@@ -26,13 +27,12 @@ public class BillController {
         return ApiResponse.success("Tạo hóa đơn chia tiền thành công", billService.createBill(request));
     }
 
+    @GetMapping("/debts")
+    public ApiResponse<DebtLedgerResponse> getDebts() {
+        return ApiResponse.success("Lấy danh sách sổ nợ thành công", billService.getDebts());
+    }
+
     // TODO
-//    @GetMapping("/debts")
-//    public ApiResponse<List<DebtSummaryResponse>> getDebts() {
-//        return ApiResponse.success("Lấy danh sách sổ nợ thành công", billService.getDebts());
-//    }
-//
-//
 //    @PostMapping("/settle/{billDetailId}")
 //    public ApiResponse<Void> settleDebt(@PathVariable Long billDetailId) {
 //        billService.settleDebt(billDetailId);

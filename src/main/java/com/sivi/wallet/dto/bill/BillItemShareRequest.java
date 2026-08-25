@@ -14,4 +14,6 @@ public class BillItemShareRequest {
     @NotNull(message = "Số tiền chia không được để trống")
     @Positive(message = "Số tiền chia phải lớn hơn 0")
     private BigDecimal amountShare;
+
+    private Boolean isPaid = false;
 }
