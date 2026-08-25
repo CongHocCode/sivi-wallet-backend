@@ -3,9 +3,12 @@ package com.sivi.wallet.service.impl;
 import com.sivi.wallet.dto.auth.AuthRequest;
 import com.sivi.wallet.dto.auth.AuthResponse;
 import com.sivi.wallet.entity.User;
+import com.sivi.wallet.entity.Wallet;
+import com.sivi.wallet.enums.WalletType;
 import com.sivi.wallet.exception.AppException;
 import com.sivi.wallet.exception.ErrorCode;
 import com.sivi.wallet.repository.UserRepository;
+import com.sivi.wallet.repository.WalletRepository;
 import com.sivi.wallet.security.JwtTokenProvider;
 import com.sivi.wallet.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -15,11 +18,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
+    private final WalletRepository walletRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
     private final AuthenticationManager authenticationManager;
@@ -40,6 +46,17 @@ public class AuthServiceImpl implements AuthService {
                 .build();
 
         User savedUser = userRepository.save(user);
+
+        // Auto-create a default Cash wallet for newly registered user
+        Wallet defaultWallet = Wallet.builder()
+                .userId(savedUser.getId())
+                .name("Ví Tiền Mặt")
+                .walletType(WalletType.CASH)
+                .balance(BigDecimal.ZERO)
+                .currency("VND")
+                .isActive(true)
+                .build();
+        walletRepository.save(defaultWallet);
 
         String token = tokenProvider.generateToken(savedUser);
         return new AuthResponse(savedUser.getId(), token, "Bearer", savedUser.getUsername());

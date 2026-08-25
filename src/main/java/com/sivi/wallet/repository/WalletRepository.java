@@ -10,4 +10,5 @@ public interface WalletRepository extends JpaRepository<Wallet, Long> {
     List<Wallet> findByUserIdAndIsActiveTrue(Long userId);
     Optional<Wallet> findByIdAndUserIdAndIsActiveTrue(Long id, Long userId);
     Long countByUserIdAndIsActiveTrue(Long userId);
+    Optional<Wallet> findFirstByUserIdAndIsActiveTrue(Long userId);
 }

@@ -24,29 +24,50 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        // 1. Seed Danh mục (giữ nguyên)
+        // 1. Seed 10 Default System Categories (userId = null)
         if (categoryRepository.count() == 0) {
-            categoryRepository.save(Category.builder().name("Ăn uống").type(CategoryType.EXPENSE).iconUrl("🍔").build());
-            categoryRepository.save(Category.builder().name("Đi lại").type(CategoryType.EXPENSE).iconUrl("🛵").build());
+            List<Category> defaultCategories = List.of(
+                    Category.builder().name("Ăn uống").type(CategoryType.EXPENSE).iconUrl("🍔").isActive(true).build(),
+                    Category.builder().name("Di chuyển").type(CategoryType.EXPENSE).iconUrl("🛵").isActive(true).build(),
+                    Category.builder().name("Đi chợ / Siêu thị").type(CategoryType.EXPENSE).iconUrl("🛒").isActive(true).build(),
+                    Category.builder().name("Mua sắm").type(CategoryType.EXPENSE).iconUrl("🛍️").isActive(true).build(),
+                    Category.builder().name("Giải trí").type(CategoryType.EXPENSE).iconUrl("🎬").isActive(true).build(),
+                    Category.builder().name("Hóa đơn & Tiện ích").type(CategoryType.EXPENSE).iconUrl("💡").isActive(true).build(),
+                    Category.builder().name("Sức khỏe").type(CategoryType.EXPENSE).iconUrl("🏥").isActive(true).build(),
+                    Category.builder().name("Giáo dục").type(CategoryType.EXPENSE).iconUrl("📚").isActive(true).build(),
+                    Category.builder().name("Lương & Thưởng").type(CategoryType.INCOME).iconUrl("💰").isActive(true).build(),
+                    Category.builder().name("Thu nhập khác").type(CategoryType.INCOME).iconUrl("💵").isActive(true).build()
+            );
+            categoryRepository.saveAll(defaultCategories);
+            System.out.println("✅ Seeded 10 default system categories successfully!");
         }
 
-        // 2. TỰ ĐỘNG BƠM 3 USER + 1 VÍ 10 TRIỆU + 1 NHÓM TEST
+        // 2. Seed Mock Users, Wallets, and Group
         if (userRepository.count() == 0) {
-            // Tạo 3 User: user1 (mình), user2 (Nam), user3 (Hùng) - Đều pass là 123456
-            User u1 = userRepository.save(User.builder().username("user1").password(passwordEncoder.encode("123456")).fullName("Tech Lead Bri").isGuest(false).build());
-            User u2 = userRepository.save(User.builder().username("user2").password(passwordEncoder.encode("123456")).fullName("Nam Cấp 3").isGuest(false).build());
-            User u3 = userRepository.save(User.builder().username("user3").password(passwordEncoder.encode("123456")).fullName("Hùng Phòng Trọ").isGuest(false).build());
+            // Seed registered users (password: 123456)
+            User u1 = userRepository.save(User.builder().username("user1").email("user1@sivi.vn").password(passwordEncoder.encode("123456")).fullName("Tech Lead Bri").isGuest(false).build());
+            User u2 = userRepository.save(User.builder().username("user2").email("user2@sivi.vn").password(passwordEncoder.encode("123456")).fullName("Nam Cấp 3").isGuest(false).build());
+            User u3 = userRepository.save(User.builder().username("user3").email("user3@sivi.vn").password(passwordEncoder.encode("123456")).fullName("Hùng Phòng Trọ").isGuest(false).build());
 
-            // Bơm sẵn Ví Tiền Mặt 10.000.000đ cho user1
+            // Seed guest user
+            User guest1 = userRepository.save(User.builder().fullName("Bé Lan (Khách)").isGuest(true).build());
+
+            // Seed wallets for user1
             walletRepository.save(Wallet.builder().userId(u1.getId()).name("Ví Tiền Mặt").walletType(WalletType.CASH).balance(new BigDecimal("10000000.00")).currency("VND").isActive(true).build());
+            walletRepository.save(Wallet.builder().userId(u1.getId()).name("Ví MoMo").walletType(WalletType.E_WALLET).balance(new BigDecimal("5000000.00")).currency("VND").isActive(true).build());
 
-            // Tạo sẵn Nhóm "Hội Ăn Lẩu 402" gồm cả 3 người
-            Group g = groupRepository.save(Group.builder().name("Hội Ăn Lẩu 402").creatorId(u1.getId()).build());
-            groupMemberRepository.save(GroupMember.builder().id(new GroupMemberId(g.getId(), u1.getId())).role(GroupRole.ADMIN).build());
-            groupMemberRepository.save(GroupMember.builder().id(new GroupMemberId(g.getId(), u2.getId())).role(GroupRole.MEMBER).build());
-            groupMemberRepository.save(GroupMember.builder().id(new GroupMemberId(g.getId(), u3.getId())).role(GroupRole.MEMBER).build());
+            // Seed wallets for user2 & user3
+            walletRepository.save(Wallet.builder().userId(u2.getId()).name("Ví Tiền Mặt").walletType(WalletType.CASH).balance(new BigDecimal("3000000.00")).currency("VND").isActive(true).build());
+            walletRepository.save(Wallet.builder().userId(u3.getId()).name("Ví Tiền Mặt").walletType(WalletType.CASH).balance(new BigDecimal("1500000.00")).currency("VND").isActive(true).build());
 
-            System.out.println("✅ Đã tự động tạo sẵn User1 (ID: 1), User2 (ID: 2), User3 (ID: 3), Ví 10tr (ID: 1), Nhóm (ID: 1)!");
+            // Seed Group "Hội Ăn Lẩu 402"
+            Group group = groupRepository.save(Group.builder().name("Hội Ăn Lẩu 402").creatorId(u1.getId()).build());
+            groupMemberRepository.save(GroupMember.builder().id(new GroupMemberId(group.getId(), u1.getId())).role(GroupRole.ADMIN).build());
+            groupMemberRepository.save(GroupMember.builder().id(new GroupMemberId(group.getId(), u2.getId())).role(GroupRole.MEMBER).build());
+            groupMemberRepository.save(GroupMember.builder().id(new GroupMemberId(group.getId(), u3.getId())).role(GroupRole.MEMBER).build());
+            groupMemberRepository.save(GroupMember.builder().id(new GroupMemberId(group.getId(), guest1.getId())).role(GroupRole.MEMBER).build());
+
+            System.out.println("✅ Seeded mock users, wallets, and groups successfully!");
         }
     }
 }

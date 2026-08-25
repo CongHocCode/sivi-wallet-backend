@@ -216,4 +216,55 @@ public class BillServiceImpl implements BillService {
                 .debts(debtItems)
                 .build();
     }
+
+    @Override
+    @Transactional
+    public void settleDebt(Long billDetailId, Long walletId) {
+        Long currentUserId = SecurityUtils.getCurrentUserId(userRepository);
+
+        // Find bill
+        BillDetail detail = billDetailRepository.findById(billDetailId)
+                .orElseThrow(() -> new AppException(ErrorCode.BILL_NOT_FOUND));
+
+        if (Boolean.TRUE.equals(detail.getIsPaid())) {
+            throw new AppException(ErrorCode.BAD_REQUEST); // Already paid
+        }
+
+        Bill bill = billRepository.findById(detail.getBillId())
+                .orElseThrow(() -> new AppException(ErrorCode.BILL_NOT_FOUND));
+
+        // Payer or debtor
+        boolean isPayer = bill.getPayerId().equals(currentUserId);
+        boolean isDebtor = detail.getUserId().equals(currentUserId);
+
+        if (!isPayer && !isDebtor) {
+            throw new AppException(ErrorCode.UNAUTHORIZED); // Not related
+        }
+
+        // Find wallet and set new balance
+        Wallet wallet = walletRepository.findByIdAndUserIdAndIsActiveTrue(walletId, currentUserId)
+                .orElseThrow(() -> new AppException(ErrorCode.WALLET_NOT_FOUND));
+
+        if (isPayer) {
+            wallet.setBalance(wallet.getBalance().add(detail.getAmountShare()));
+        } else {
+            if (wallet.getBalance().compareTo(detail.getAmountShare()) < 0) {
+                throw new AppException(ErrorCode.INSUFFICIENT_BALANCE);
+            }
+            wallet.setBalance(wallet.getBalance().subtract(detail.getAmountShare()));
+        }
+
+        // Set new states
+        detail.setIsPaid(true);
+        detail.setPaidAt(LocalDateTime.now());
+        billDetailRepository.save(detail);
+
+        boolean isAllPaid = billDetailRepository.findByBillId(bill.getId()).stream()
+                .allMatch(BillDetail::getIsPaid);
+
+        if (isAllPaid) {
+            bill.setStatus(BillStatus.SETTLED);
+            billRepository.save(bill);
+        }
+    }
 }
