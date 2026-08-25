@@ -13,4 +13,9 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     @Query("SELECT c FROM Category c WHERE c.id = :id AND (c.userId = :userId OR c.userId IS NULL) AND c.isActive = true")
     Optional<Category> findAccessibleCategory(@Param("id") Long id, @Param("userId") Long userId);
+
+    @Query("SELECT COUNT(c) > 0 FROM Category c " +
+            "WHERE c.id = :id AND c.isActive = true " +
+            "AND (c.userId = :userId OR c.userId IS NULL)")
+    boolean existsAccessibleCategory(@Param("id") Long id, @Param("userId") Long userId);
 }
