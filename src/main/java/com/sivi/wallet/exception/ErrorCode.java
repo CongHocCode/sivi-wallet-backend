@@ -16,6 +16,7 @@ public enum ErrorCode {
     USER_NOT_FOUND("4009", "Không tìm thấy người dùng yêu cầu"),
     GROUP_NOT_FOUND("4010", "Không tìm thấy nhóm yêu cầu"),
     MEMBER_NOT_IN_GROUP("4011", "Một hoặc nhiều thành viên không thuộc nhóm này"),
+    BILL_NOT_FOUND("4012", "Không tìm thấy hóa đơn yêu cầu"),
     INTERNAL_SERVER_ERROR("5000", "Lỗi hệ thống nội bộ, vui lòng thử lại sau");
 
 
