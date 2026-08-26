@@ -17,4 +17,6 @@ public class WalletTransferRequest {
     @NotNull(message = "Số tiền chuyển không được để trống")
     @DecimalMin(value = "1000.00", message = "Số tiền chuyển tối thiểu là 1.000 VNĐ")
     private BigDecimal amount;
+
+    private String note;
 }
