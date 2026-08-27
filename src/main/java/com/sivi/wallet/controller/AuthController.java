@@ -2,6 +2,7 @@ package com.sivi.wallet.controller;
 
 import com.sivi.wallet.dto.auth.AuthRequest;
 import com.sivi.wallet.dto.auth.AuthResponse;
+import com.sivi.wallet.dto.auth.UserResponse;
 import com.sivi.wallet.dto.common.ApiResponse;
 import com.sivi.wallet.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -27,5 +28,10 @@ public class AuthController {
     public ApiResponse<AuthResponse> login(@RequestBody AuthRequest request) {
         AuthResponse response = authService.login(request);
         return ApiResponse.success("Đăng nhập thành công", response);
+    }
+
+    @GetMapping("/me")
+    public ApiResponse<UserResponse> getCurrentUser() {
+        return ApiResponse.success("Lấy thông tin thành công", authService.getCurrentUser());
     }
 }
