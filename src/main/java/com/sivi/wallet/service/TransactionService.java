@@ -8,4 +8,5 @@ import java.util.List;
 public interface TransactionService {
     TransactionResponse createTransaction(TransactionRequest request);
     List<TransactionResponse> getTransactions(Integer month, Integer year, Long walletId);
+    void deleteTransaction(Long id);
 }

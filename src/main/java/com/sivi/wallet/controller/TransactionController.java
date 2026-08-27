@@ -34,4 +34,10 @@ public class TransactionController {
         );
     }
 
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> deleteTransaction(@PathVariable Long id) {
+        transactionService.deleteTransaction(id);
+        return ApiResponse.success("Xóa giao dịch và hoàn tiền ví thành công", null);
+    }
+
 }

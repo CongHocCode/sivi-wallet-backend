@@ -6,6 +6,7 @@ import com.sivi.wallet.entity.Category;
 import com.sivi.wallet.entity.Transaction;
 import com.sivi.wallet.entity.Wallet;
 import com.sivi.wallet.enums.CategoryType;
+import com.sivi.wallet.enums.TransactionType;
 import com.sivi.wallet.exception.AppException;
 import com.sivi.wallet.exception.ErrorCode;
 import com.sivi.wallet.mapper.TransactionMapper;
@@ -90,6 +91,33 @@ public class TransactionServiceImpl implements TransactionService {
                         walletMap.get(tx.getWalletId()),
                         categoryMap.get(tx.getCategoryId())
                 )).toList();
+    }
+
+    @Override
+    @Transactional
+    public void deleteTransaction(Long id) {
+        Long currentUserId = SecurityUtils.getCurrentUserId(userRepository);
+
+        Transaction tx = txRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.BAD_REQUEST));
+
+        Wallet wallet = walletRepository.findByIdAndUserIdAndIsActiveTrue(tx.getWalletId(), currentUserId)
+                .orElseThrow(() -> new AppException(ErrorCode.WALLET_NOT_FOUND));
+
+        if (Boolean.TRUE.equals(tx.getIsDeleted())) {
+            throw new AppException(ErrorCode.BAD_REQUEST); // Already deleted
+        }
+
+        // Refund:
+        if (tx.getType() == TransactionType.EXPENSE) {
+            wallet.setBalance(wallet.getBalance().add(tx.getAmount()));
+        } else if (tx.getType() == TransactionType.INCOME) {
+            wallet.setBalance(wallet.getBalance().subtract(tx.getAmount()));
+        }
+
+        tx.setIsDeleted(true); // Soft delete
+        txRepository.save(tx);
+        walletRepository.save(wallet);
     }
 
 }
