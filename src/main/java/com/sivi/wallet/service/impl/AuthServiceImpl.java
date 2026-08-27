@@ -2,6 +2,7 @@ package com.sivi.wallet.service.impl;
 
 import com.sivi.wallet.dto.auth.AuthRequest;
 import com.sivi.wallet.dto.auth.AuthResponse;
+import com.sivi.wallet.dto.auth.UserResponse;
 import com.sivi.wallet.entity.User;
 import com.sivi.wallet.entity.Wallet;
 import com.sivi.wallet.enums.WalletType;
@@ -11,6 +12,7 @@ import com.sivi.wallet.repository.UserRepository;
 import com.sivi.wallet.repository.WalletRepository;
 import com.sivi.wallet.security.JwtTokenProvider;
 import com.sivi.wallet.service.AuthService;
+import com.sivi.wallet.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -73,5 +75,17 @@ public class AuthServiceImpl implements AuthService {
 
         String token = tokenProvider.generateToken(user);
         return new AuthResponse(user.getId(), token, "Bearer", user.getUsername());
+    }
+
+    @Override
+    public UserResponse getCurrentUser() {
+        User user = SecurityUtils.getCurrentUser(userRepository);
+        return UserResponse.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .fullName(user.getFullName())
+                .isGuest(user.isGuest())
+                .build();
     }
 }

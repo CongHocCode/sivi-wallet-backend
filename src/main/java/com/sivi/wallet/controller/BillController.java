@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/v1/bills")
 @RequiredArgsConstructor
@@ -34,5 +36,10 @@ public class BillController {
 
         billService.settleDebt(billDetailId, walletId);
         return ApiResponse.success("Xác nhận tất toán nợ thành công", null);
+    }
+
+    @GetMapping
+    public ApiResponse<List<BillResponse>> getMyBills() {
+        return ApiResponse.success("Lấy danh sách hóa đơn thành công", billService.getMyBills());
     }
 }

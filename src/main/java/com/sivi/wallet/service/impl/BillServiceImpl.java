@@ -267,4 +267,21 @@ public class BillServiceImpl implements BillService {
             billRepository.save(bill);
         }
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<BillResponse> getMyBills() {
+        Long currentUserId = SecurityUtils.getCurrentUserId(userRepository);
+        List<Bill> bills = billRepository.findByPayerId(currentUserId);
+        User payer = SecurityUtils.getCurrentUser(userRepository);
+
+        return bills.stream().map(bill -> {
+            List<BillDetail> details = billDetailRepository.findByBillId(bill.getId());
+            List<BillDetailResponse> detailResponses = details.stream()
+                    .map(d -> BillMapper.toDetailResponse(d, userRepository.findById(d.getUserId()).orElse(null)))
+                    .toList();
+            Group group = bill.getGroupId() != null ? groupRepository.findById(bill.getGroupId()).orElse(null) : null;
+            return BillMapper.toResponse(bill, detailResponses, group, payer);
+        }).toList();
+    }
 }
