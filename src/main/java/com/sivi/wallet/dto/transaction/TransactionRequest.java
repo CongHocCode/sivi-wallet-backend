@@ -20,7 +20,7 @@ public class TransactionRequest {
     @DecimalMin(value = "0.0", message = "Số tiền giao dịch không được là số âm")
     private BigDecimal amount;
 
-    @Size(max = 255, message = "Ghi chú không được vượt quá 255 ký tự")
+    @Size(max = 1000, message = "Ghi chú không được vượt quá 255 ký tự")
     private String note;
 
     @NotNull(message = "Vui lòng chọn loại giao dịch (Thu/Chi)")

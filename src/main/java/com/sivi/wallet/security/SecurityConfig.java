@@ -42,10 +42,12 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         // Allow Localhost (3000, 5173) and Domain Cloud Run / AI Studio
         config.setAllowedOriginPatterns(List.of(
-                "http://localhost:3000",
-                "http://localhost:5173",
+                "http://localhost:*",
+                "http://192.168.*:*",
+                "http://10.*:*",
                 "https://*.ai.studio",
-                "https://*.run.app"
+                "https://*.run.app",
+                "*"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
