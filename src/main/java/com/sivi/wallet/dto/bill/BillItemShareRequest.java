@@ -9,7 +9,8 @@ import java.math.BigDecimal;
 public class BillItemShareRequest {
 
     @NotNull(message = "ID người tham gia chia bill không được để trống")
-    private Long userId; // System user / guest
+    private Long userId; // System user / old guest
+    private String fullName;   // New guest
 
     @NotNull(message = "Số tiền chia không được để trống")
     @Positive(message = "Số tiền chia phải lớn hơn 0")

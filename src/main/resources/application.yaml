@@ -5,7 +5,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/sivi_wallet_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3306/sivi_wallet_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true
     username: root
     password: ${DB_PASSWORD:123456}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -21,3 +21,5 @@ spring:
 jwt:
   secret: ${JWT_SECRET:9a4f2c8d7e1b5a3f6c8e0d2b4a6f8c1d3e5b7a9f2c4e6d8b0a2c4e6f8a0b2c4e}
   expiration-ms: ${JWT_EXPIRATION_MS:86400000} # Mặc định 24 giờ
+jackson:
+  time-zone: Asia/Ho_Chi_Minh

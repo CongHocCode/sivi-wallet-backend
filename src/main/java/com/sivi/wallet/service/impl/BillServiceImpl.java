@@ -101,17 +101,17 @@ public class BillServiceImpl implements BillService {
         Bill savedBill = billRepository.save(bill);
 
         // Create Bill Details (Payer -> isPaid = true, paidAt = now)
-        List<BillDetail> billDetails = request.getItems().stream()
-                .map(item -> {
-                    boolean isPaid = item.getUserId().equals(currentUserId) || Boolean.TRUE.equals(item.getIsPaid());
-                    return BillMapper.toDetailEntity(
-                            savedBill.getId(),
-                            item.getUserId(),
-                            item.getAmountShare(),
-                            isPaid
-                    );
-                })
-                .toList();
+        List<BillDetail> billDetails = request.getItems().stream().map(item -> {
+            Long memberUserId = item.getUserId();
+            if (memberUserId == null) {
+                User newGuest = userRepository.save(User.builder().fullName(item.getFullName()).isGuest(true).build());
+                memberUserId = newGuest.getId();
+                allUserIds.add(memberUserId);
+            }
+            boolean isPaid = memberUserId.equals(currentUserId) || Boolean.TRUE.equals(item.getIsPaid());
+            return BillMapper.toDetailEntity(savedBill.getId(), memberUserId, item.getAmountShare(), isPaid);
+        }).toList();
+
         List<BillDetail> savedDetails = billDetailRepository.saveAll(billDetails);
 
         // Update Bill status if all members have paid
