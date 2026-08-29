@@ -38,12 +38,28 @@ public class BillServiceImpl implements BillService {
     public BillResponse createBill(CreateBillRequest request) {
         Long currentUserId = SecurityUtils.getCurrentUserId(userRepository);
 
-        // Check for wallet's availability
-        Wallet wallet = walletRepository.findByIdAndUserIdAndIsActiveTrue(request.getWalletId(), currentUserId)
-                .orElseThrow(() -> new AppException(ErrorCode.WALLET_NOT_FOUND));
+        // 1. Determine Payer (Current user, existing user/guest, or new guest)
+        Long finalPayerId = currentUserId;
+        if (request.getPayerId() != null) {
+            finalPayerId = request.getPayerId();
+        } else if (request.getPayerName() != null && !request.getPayerName().isBlank()) {
+            User guestPayer = userRepository.save(User.builder().fullName(request.getPayerName()).isGuest(true).build());
+            finalPayerId = guestPayer.getId();
+        }
+        boolean isCurrentUserPayer = finalPayerId.equals(currentUserId);
 
-        if (wallet.getBalance().compareTo(request.getTotalAmount()) < 0) {
-            throw new AppException(ErrorCode.INSUFFICIENT_BALANCE);
+        // Check for wallet's availability (Only if current user is the one paying upfront)
+        Wallet wallet = null;
+        if (isCurrentUserPayer) {
+            if (request.getWalletId() == null) {
+                throw new AppException(ErrorCode.BAD_REQUEST); // "Vui lòng chọn ví thanh toán"
+            }
+            wallet = walletRepository.findByIdAndUserIdAndIsActiveTrue(request.getWalletId(), currentUserId)
+                    .orElseThrow(() -> new AppException(ErrorCode.WALLET_NOT_FOUND));
+
+            if (wallet.getBalance().compareTo(request.getTotalAmount()) < 0) {
+                throw new AppException(ErrorCode.INSUFFICIENT_BALANCE);
+            }
         }
 
         // Check category existence
@@ -53,8 +69,11 @@ public class BillServiceImpl implements BillService {
 
         // Collect all bill participant IDs
         Set<Long> allUserIds = request.getItems().stream()
-                .map(BillItemShareRequest::getUserId).collect(Collectors.toSet());
+                .map(BillItemShareRequest::getUserId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
         allUserIds.add(currentUserId);
+        allUserIds.add(finalPayerId);
 
         // Group & user validity
         Group group = null;
@@ -80,27 +99,31 @@ public class BillServiceImpl implements BillService {
             throw new AppException(ErrorCode.BAD_REQUEST); // "Tổng tiền chia không khớp!"
         }
 
-        // Set new balance for wallet
-        wallet.setBalance(wallet.getBalance().subtract(request.getTotalAmount()));
+        // Set new balance for wallet & Create transaction (Only if current user is Payer)
+        Long transactionId = null;
+        if (isCurrentUserPayer && wallet != null) {
+            wallet.setBalance(wallet.getBalance().subtract(request.getTotalAmount()));
 
-        // Create transaction
-        Transaction tx = Transaction.builder()
-                .walletId(wallet.getId())
-                .categoryId(request.getCategoryId())
-                .amount(request.getTotalAmount())
-                .type(TransactionType.EXPENSE)
-                .note("Thanh toán Bill: " + (request.getDescription() != null ? request.getDescription() : "Chia tiền"))
-                .sourceType(request.getSourceType())
-                .isDeleted(false)
-                .transactionDate(LocalDateTime.now())
-                .build();
-        Transaction savedTx = transactionRepository.save(tx);
+            Transaction tx = Transaction.builder()
+                    .walletId(wallet.getId())
+                    .categoryId(request.getCategoryId())
+                    .amount(request.getTotalAmount())
+                    .type(TransactionType.EXPENSE)
+                    .note("Thanh toán Bill: " + (request.getDescription() != null ? request.getDescription() : "Chia tiền"))
+                    .sourceType(request.getSourceType())
+                    .isDeleted(false)
+                    .transactionDate(LocalDateTime.now())
+                    .build();
+            Transaction savedTx = transactionRepository.save(tx);
+            transactionId = savedTx.getId();
+        }
 
         // Create Bill
-        Bill bill = BillMapper.toEntity(request, currentUserId, savedTx.getId());
+        Bill bill = BillMapper.toEntity(request, finalPayerId, transactionId);
         Bill savedBill = billRepository.save(bill);
 
         // Create Bill Details (Payer -> isPaid = true, paidAt = now)
+        final Long resolvedPayerId = finalPayerId;
         List<BillDetail> billDetails = request.getItems().stream().map(item -> {
             Long memberUserId = item.getUserId();
             if (memberUserId == null) {
@@ -108,7 +131,7 @@ public class BillServiceImpl implements BillService {
                 memberUserId = newGuest.getId();
                 allUserIds.add(memberUserId);
             }
-            boolean isPaid = memberUserId.equals(currentUserId) || Boolean.TRUE.equals(item.getIsPaid());
+            boolean isPaid = memberUserId.equals(resolvedPayerId) || Boolean.TRUE.equals(item.getIsPaid());
             return BillMapper.toDetailEntity(savedBill.getId(), memberUserId, item.getAmountShare(), isPaid);
         }).toList();
 
@@ -128,7 +151,7 @@ public class BillServiceImpl implements BillService {
                 .map(detail -> BillMapper.toDetailResponse(detail, userMap.get(detail.getUserId())))
                 .toList();
 
-        return BillMapper.toResponse(savedBill, detailResponses, group, userMap.get(currentUserId));
+        return BillMapper.toResponse(savedBill, detailResponses, group, userMap.get(finalPayerId));
     }
 
     @Override

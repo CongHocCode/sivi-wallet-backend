@@ -1,7 +1,6 @@
 package com.sivi.wallet.dto.bill;
 
 import com.sivi.wallet.enums.SourceType;
-import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -12,10 +11,10 @@ import java.util.List;
 
 @Data
 public class CreateBillRequest {
-    private Long groupId;           // Null if individual bill
-
-    @NotNull(message = "Vui lòng chọn ví đã dùng để thanh toán")
-    private Long walletId;          // Payer wallet
+    private Long groupId;           // Null if there is no group related
+    private Long payerId;           // Payer ID (system user / old guest)
+    private String payerName;       // Payer name (new guest)
+    private Long walletId;          // Required if current is payer, null if other people paid
 
     @NotNull(message = "Vui lòng chọn danh mục cho Bill")
     private Long categoryId;
