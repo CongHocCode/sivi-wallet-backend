@@ -23,3 +23,9 @@ jwt:
   expiration-ms: ${JWT_EXPIRATION_MS:86400000} # Mặc định 24 giờ
 jackson:
   time-zone: Asia/Ho_Chi_Minh
+
+gemini:
+  api:
+    key: ${GEMINI_API_KEY:AIzaSy_Key_That_Cua_Bri_O_Day} # Đọc từ biến môi trường, fallback key test local
+    model: gemini-3.5-flash-lite # Hoặc gemini-3.5-flash-lite
+    url: https://generativelanguage.googleapis.com/v1beta/models
